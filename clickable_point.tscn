@@ -1,0 +1,17 @@
+[gd_scene load_steps=4 format=3 uid="uid://draeg4g6ient6"]
+
+[ext_resource type="Script" path="res://ClickablePoint.gd" id="1_alcep"]
+[ext_resource type="Script" path="res://Circle.gd" id="2_akhx2"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_141en"]
+radius = 5.0
+
+[node name="ClickablePoint" type="Area2D"]
+script = ExtResource("1_alcep")
+circle_size = 10
+
+[node name="CirclePrefab" type="Sprite2D" parent="."]
+script = ExtResource("2_akhx2")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_141en")

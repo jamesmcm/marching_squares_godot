@@ -1,0 +1,23 @@
+[gd_scene load_steps=5 format=3 uid="uid://2nn3p7a5xko5"]
+
+[ext_resource type="Script" path="res://MeshGrid.gd" id="1_dm1b3"]
+[ext_resource type="Script" path="res://game.gd" id="1_l7nue"]
+[ext_resource type="Script" path="res://Points.gd" id="3_kufn3"]
+[ext_resource type="PackedScene" uid="uid://draeg4g6ient6" path="res://clickable_point.tscn" id="4_yxp7l"]
+
+[node name="Parent" type="Node2D"]
+position = Vector2(100, 100)
+script = ExtResource("1_l7nue")
+
+[node name="Points" type="Node2D" parent="."]
+unique_name_in_owner = true
+z_index = 1
+script = ExtResource("3_kufn3")
+
+[node name="ClickablePoint" parent="Points" instance=ExtResource("4_yxp7l")]
+
+[node name="MeshInstance" type="MeshInstance2D" parent="."]
+unique_name_in_owner = true
+script = ExtResource("1_dm1b3")
+
+[connection signal="regenerate" from="Points" to="." method="_on_points_regenerate"]
