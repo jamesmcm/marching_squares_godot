@@ -22,8 +22,8 @@ func set_grid():
 # TODO: Why is this so slow?
 func _ready():
 	self.set_grid()
-	for j in range(0, grid_size):
-		for i in range(0, grid_size):
+	for j in range(0, self.grid_size):
+		for i in range(0, self.grid_size):
 			var p = point_scene.instantiate()
 			points_status.append(false)
 			p.position = Vector2(self.position.x + (i*self.grid_step), self.position.y + (j*self.grid_step))

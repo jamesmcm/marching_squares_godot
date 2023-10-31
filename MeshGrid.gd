@@ -7,6 +7,7 @@ var owner_id = null
 var current_collider_shapes_points = {}
 var shape_add_count = 0
 
+# TODO: Add version with linear interpolation
 func build_triangulation_dict(): 
 	var triangulation_dict = {
 	Vector4(false, false, false, false) : [],
@@ -100,9 +101,6 @@ func _ready():
 	set_grid()	
 	self.mesh = generateTriangleMesh()
 
-	#	%MeshCollider.set_polygon(PackedVector2Array(self.mesh.surface_get_arrays(self.mesh.ARRAY_VERTEX)[0]))
-		#%MeshCollider.set_polygon(PackedVector2Array([Vector2(100, 100), Vector2(100, 200), Vector2(200,100), Vector2(200,200)]))
-
 func clear_shapes(b, owner):
 	# b.shape_owner_clear_shapes(owner)
 	b.remove_shape_owner(self.owner_id)
@@ -117,9 +115,6 @@ func get_new_collider_shapes_set():
 	var i = 0
 	var points_set = {}
 	while i < (points.size() / 3):
-		# var s = ConvexPolygonShape2D.new()
-		# s.points = PackedVector2Array(Array([points[3*i], points[(3*i)+1], points[(3*i)+2]]))
-		#body.shape_owner_add_shape(self.owner_id, s)
 		points_set[[points[3*i], points[(3*i)+1], points[(3*i)+2]]] = true
 		i += 1
 	return points_set
@@ -136,7 +131,6 @@ func regenerate(v):
 	self.mesh = generateTriangleMesh()
 	
 	var new_set = get_new_collider_shapes_set()
-	# print(new_set)
 	var new_tris = set_difference(new_set, self.current_collider_shapes_points)
 	var deleted_tris = set_difference(self.current_collider_shapes_points, new_set)
 	
@@ -144,44 +138,17 @@ func regenerate(v):
 		var id = self.current_collider_shapes_points[new_tri]
 		body.shape_owner_remove_shape(self.owner_id, id)
 		self.current_collider_shapes_points.erase(new_tri)
-		# TODO: WTF - can we avoid this?
 		self.shape_add_count -= 1
 		for k in self.current_collider_shapes_points.keys():
 			if self.current_collider_shapes_points[k] >= id:
 				self.current_collider_shapes_points[k] = self.current_collider_shapes_points[k] - 1
-		print(body.shape_owner_get_shape_count(self.owner_id))
 
 	for new_tri in new_tris:
-		print(body.shape_owner_get_shape_count(self.owner_id))
 		var s = ConvexPolygonShape2D.new()
 		s.points = PackedVector2Array(new_tri)
 		body.shape_owner_add_shape(self.owner_id, s)
 		self.current_collider_shapes_points[new_tri] = self.shape_add_count #s.get_rid().get_id()
 		self.shape_add_count += 1
-		# s.get_instance_id()  # Is this shape_id ?
-	# print(self.current_collider_shapes_points)
-		
-		
-		
-	#print("New points " + str(new_points))
-	#print("Deleted points " + str(deleted_points))
-	#var point_cloud = []
-	#if self.mesh != null:
-		#for p in self.mesh.create_trimesh_shape().get_faces():
-		#	point_cloud.append(Vector2(p.x, p.y))
-		#%MeshCollider.set_polygon(PackedVector2Array(point_cloud))
-		
-		#var points = self.mesh.surface_get_arrays(self.mesh.ARRAY_VERTEX)[0]
-		#var i = 0
-		#while i < (points.size() / 3):
-			#var s = ConvexPolygonShape2D.new()
-			## s.set_point_cloud(PackedVector2Array(Array([points[3*i], points[(3*i)+1], points[(3*i)+2]])))
-			#s.points = PackedVector2Array(Array([points[3*i], points[(3*i)+1], points[(3*i)+2]]))
-			#body.shape_owner_add_shape(self.owner_id, s)
-			#i += 1
-
-		# print(body.get_shape_owners())
-		# print(body.shape_owner_get_shape_count(self.owner_id))
 
 func set_grid():
 	var root_node = get_tree().get_root().get_child(0)
@@ -191,7 +158,6 @@ func set_grid():
 	var root_grid_step = root_node.get("grid_step")
 	if root_grid_step != null:
 		self.grid_step = root_grid_step
-
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):

@@ -10,6 +10,7 @@ radius = 5.0
 collision_layer = 8
 collision_mask = 8
 script = ExtResource("1_alcep")
+circle_size = 4
 
 [node name="CircleSprite" type="Sprite2D" parent="."]
 script = ExtResource("2_akhx2")

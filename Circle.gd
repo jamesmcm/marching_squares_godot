@@ -1,7 +1,7 @@
 extends Sprite2D
 
-@export_range(4,20) var circle_size = 5
-@export var colour = Color.BLACK
+var circle_size = null
+var colour = null
 
 
 # Called when the node enters the scene tree for the first time.

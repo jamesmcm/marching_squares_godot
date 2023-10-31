@@ -6,6 +6,7 @@
 radius = 20.0
 
 [node name="FallingBall" type="RigidBody2D"]
+z_index = 2
 mass = 0.2
 
 [node name="BallCollider" type="CollisionShape2D" parent="."]

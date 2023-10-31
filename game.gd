@@ -29,12 +29,8 @@ func _input(event):
 		b.position = get_viewport().get_mouse_position() - self.position
 		self.add_child(b)
 
-
-
-
 func regenerateSet(val):
 	self.pending_regenerate = true
-
 
 
 func _on_points_regenerate():
