@@ -6,9 +6,11 @@ var triangulation_dict = null
 var owner_id = null
 var current_collider_shapes_points = {}
 var shape_add_count = 0
+var threshold = null
 
 # TODO: Add version with linear interpolation
 func build_triangulation_dict(): 
+	# TODO: Convert this to standard 0-15 lookup
 	var triangulation_dict = {
 	Vector4(false, false, false, false) : [],
 	Vector4(true, false, false, false) : [Vector2(0.0, 0.0), Vector2(0.5, 0.0), Vector2(0.0, 0.5)],
@@ -48,7 +50,28 @@ func build_triangulation_dict():
 
 # TODO: Iterative generate mesh
 # Given modified points and existing mesh, delete and regenerate only affected points
+func interpolate(a, b):
+	if a > b:
+		print((a + b) / 2.0)
+		return (a + b) / 2.0
+	else:
+		print(1 - ((a + b) / 2.0))
+		return 1 - ((a + b) / 2.0)
 
+
+func midpoint_tri_to_interpolation(p, points_weights):
+	if p.x == 0.5:
+		if p.y == 0:
+			return Vector2(interpolate(points_weights[0], points_weights[1]), 0)
+		elif p.y == 1:
+			return Vector2(interpolate(points_weights[2], points_weights[3]), 1)
+	elif p.y == 0.5:
+		if p.x == 0:
+			return Vector2(0, interpolate(points_weights[0], points_weights[2]))
+		elif p.x == 1:
+			return Vector2(1, interpolate(points_weights[1], points_weights[3]))
+	else:
+		return p
 func generateTriangleMesh() -> ArrayMesh:
 	set_grid()
 	build_triangulation_dict()
@@ -58,35 +81,28 @@ func generateTriangleMesh() -> ArrayMesh:
 	var all_triangles = []
 	for y in range(0, self.grid_size - 1):
 		for x in range(0, self.grid_size - 1):
-			# print(y, x)
-			var square = Vector4(%Points.points_status[(y*self.grid_size) + x],
-			%Points.points_status[(y*self.grid_size) + x + 1],
-			%Points.points_status[((y+1)*self.grid_size) + x],
-			%Points.points_status[((y+1)*self.grid_size) + x + 1]
-			)
+			var points_weights = [%Points.points_weights[(y*self.grid_size) + x],
+			%Points.points_weights[(y*self.grid_size) + x + 1],
+			%Points.points_weights[((y+1)*self.grid_size) + x],
+			%Points.points_weights[((y+1)*self.grid_size) + x + 1]]
+			var points_bools = points_weights.map(func(k): return k >= self.threshold)
+			var square = Vector4(points_bools[0], points_bools[1], points_bools[2], points_bools[3])
 			var triangle_list = PackedVector2Array()
-			
 			for tri in triangulation_dict[square]:
+				var interpolated_tri = midpoint_tri_to_interpolation(tri, points_weights)
 				indices.append(index_count)
 				index_count += 1
-				var new_tri = (tri * self.grid_step) + Vector2(x * self.grid_step, y * self.grid_step)
-				
+				var new_tri = (interpolated_tri * self.grid_step) + Vector2(x * self.grid_step, y * self.grid_step)
 				triangle_list.append(new_tri)
 			all_triangles.append_array(triangle_list)
-			
 	var arr = []
 	arr.resize(Mesh.ARRAY_MAX)
 	var verts = PackedVector2Array()
-	# print(self.position)
-	# print(self.global_position)
-	# print(all_triangles)
 	if all_triangles.size() == 0:
 		return null
 	
 	verts.append_array(all_triangles)
 	arr[Mesh.ARRAY_VERTEX] = verts
-	# arr[Mesh.ARRAY_TEX_UV] = uvs
-	# arr[Mesh.ARRAY_NORMAL] = normals
 	arr[Mesh.ARRAY_INDEX] = indices
 	var mesh = ArrayMesh.new()
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arr)
@@ -158,6 +174,9 @@ func set_grid():
 	var root_grid_step = root_node.get("grid_step")
 	if root_grid_step != null:
 		self.grid_step = root_grid_step
+	var root_threshold = root_node.get("threshold")
+	if root_threshold != null:
+		self.threshold = root_threshold
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
