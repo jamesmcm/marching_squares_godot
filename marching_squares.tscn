@@ -1,15 +1,19 @@
-[gd_scene load_steps=7 format=3 uid="uid://2nn3p7a5xko5"]
+[gd_scene load_steps=10 format=3 uid="uid://2nn3p7a5xko5"]
 
 [ext_resource type="Script" path="res://MeshGrid.gd" id="1_dm1b3"]
 [ext_resource type="Script" path="res://game.gd" id="1_l7nue"]
 [ext_resource type="Script" path="res://Points.gd" id="3_kufn3"]
 [ext_resource type="Script" path="res://MeshBody.gd" id="4_ikp5r"]
 [ext_resource type="Script" path="res://MouseCollider.gd" id="5_oc32h"]
+[ext_resource type="Script" path="res://Circle.gd" id="6_m82l2"]
+[ext_resource type="Script" path="res://RectDraw.gd" id="7_10rs4"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_w7gar"]
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_jgik6"]
+size = Vector2(1920, 1000)
+
 [node name="Game" type="Node2D"]
-position = Vector2(100, 100)
 script = ExtResource("1_l7nue")
 
 [node name="Points" type="Node2D" parent="."]
@@ -23,10 +27,12 @@ script = ExtResource("4_ikp5r")
 
 [node name="MeshInstance" type="MeshInstance2D" parent="MeshBody"]
 unique_name_in_owner = true
+modulate = Color(0.054902, 0.768627, 0, 1)
 script = ExtResource("1_dm1b3")
 
 [node name="MouseCollider" type="Area2D" parent="."]
 unique_name_in_owner = true
+modulate = Color(1, 1, 1, 0.396078)
 collision_layer = 8
 collision_mask = 8
 input_pickable = false
@@ -34,5 +40,39 @@ script = ExtResource("5_oc32h")
 
 [node name="MouseCircle" type="CollisionShape2D" parent="MouseCollider"]
 shape = SubResource("CircleShape2D_w7gar")
+
+[node name="Sprite2D" type="Sprite2D" parent="MouseCollider"]
+script = ExtResource("6_m82l2")
+
+[node name="Bound" type="Area2D" parent="."]
+
+[node name="CollisionShape2D2" type="CollisionShape2D" parent="Bound"]
+position = Vector2(960, 1580)
+shape = SubResource("RectangleShape2D_jgik6")
+
+[node name="Control" type="Control" parent="Bound/CollisionShape2D2"]
+layout_mode = 3
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="Sprite2D" type="Sprite2D" parent="Bound/CollisionShape2D2/Control"]
+script = ExtResource("7_10rs4")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Bound"]
+position = Vector2(960, -500)
+shape = SubResource("RectangleShape2D_jgik6")
+
+[node name="Control" type="Control" parent="Bound/CollisionShape2D"]
+layout_mode = 3
+anchors_preset = 10
+anchor_right = 1.0
+grow_horizontal = 2
+
+[node name="Sprite2D" type="Sprite2D" parent="Bound/CollisionShape2D/Control"]
+script = ExtResource("7_10rs4")
 
 [connection signal="regenerate" from="Points" to="." method="_on_points_regenerate"]

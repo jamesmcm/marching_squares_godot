@@ -20,6 +20,7 @@ func set_grid():
 		self.grid_step = root_grid_step
 # Called when the node enters the scene tree for the first time.
 # TODO: Why is this so slow?
+# TODO: Replace with point mesh ? 
 func _ready():
 	self.set_grid()
 	for j in range(0, self.grid_size):

@@ -1,8 +1,11 @@
 extends Area2D
 
+var radius = 20
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
+	self.get_child(0).shape.radius = self.radius
+	self.get_child(1).reset_radius(self.radius)
 	pass # Replace with function body.
 
 
@@ -26,4 +29,15 @@ func _input(event):
 		if event.is_action_pressed("unpaint_circle"):
 			for node in self.get_overlapping_areas():
 				node.disable_point()
+		if event.is_action_pressed("increase_brush_size"):
+			if self.radius < 50:
+				self.radius += 5
+				self.get_child(0).shape.radius = self.radius
+				self.get_child(1).reset_radius(self.radius)
+		if event.is_action_pressed("decrease_brush_size"):
+			if self.radius > 5:
+				self.radius -= 5
+				self.get_child(0).shape.radius = self.radius
+				self.get_child(1).reset_radius(self.radius)
+			
 			

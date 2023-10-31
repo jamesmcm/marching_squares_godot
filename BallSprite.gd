@@ -6,7 +6,7 @@ var circle_size = 20
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
-	self.circle_size = %BallCollider.shape.radius
+	pass
 
 
 func _draw():

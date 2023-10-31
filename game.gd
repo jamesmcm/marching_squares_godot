@@ -2,7 +2,7 @@ extends Node2D
 
 # TODO: Make this resize to screen
 @export_range(10,1000) var grid_size = 100
-@export_range(5,200) var grid_step = 10
+@export_range(5,200) var grid_step = 20
 @export var regenerate = false : set = regenerateSet
 var pending_regenerate = false
 
@@ -26,6 +26,7 @@ func _process(delta):
 func _input(event):
 	if event.is_action_released("create_ball"):
 		var b = ball_scene.instantiate()
+		b.radius = %MouseCollider.radius
 		b.position = get_viewport().get_mouse_position() - self.position
 		self.add_child(b)
 

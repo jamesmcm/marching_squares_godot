@@ -1,18 +1,18 @@
-[gd_scene load_steps=3 format=3 uid="uid://bjb41eyy5fl0i"]
+[gd_scene load_steps=4 format=3 uid="uid://bjb41eyy5fl0i"]
 
+[ext_resource type="Script" path="res://falling_ball.gd" id="1_06mo7"]
 [ext_resource type="Script" path="res://BallSprite.gd" id="1_t2wuf"]
-
-[sub_resource type="CircleShape2D" id="CircleShape2D_12kdv"]
-radius = 20.0
+[ext_resource type="Script" path="res://BallCollider.gd" id="2_n3bgd"]
 
 [node name="FallingBall" type="RigidBody2D"]
 z_index = 2
 mass = 0.2
+script = ExtResource("1_06mo7")
 
 [node name="BallCollider" type="CollisionShape2D" parent="."]
 unique_name_in_owner = true
-shape = SubResource("CircleShape2D_12kdv")
 debug_color = Color(0.968627, 0, 0.466667, 0.419608)
+script = ExtResource("2_n3bgd")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 script = ExtResource("1_t2wuf")
