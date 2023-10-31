@@ -3,6 +3,7 @@ extends MeshInstance2D
 var grid_size = 10
 var grid_step = 100
 var triangulation_dict = null
+var owner_id = null
 
 func build_triangulation_dict(): 
 	var triangulation_dict = {
@@ -87,9 +88,49 @@ func _ready():
 	set_grid()	
 	self.mesh = generateTriangleMesh()
 
+	#	%MeshCollider.set_polygon(PackedVector2Array(self.mesh.surface_get_arrays(self.mesh.ARRAY_VERTEX)[0]))
+		#%MeshCollider.set_polygon(PackedVector2Array([Vector2(100, 100), Vector2(100, 200), Vector2(200,100), Vector2(200,200)]))
+
+
+
 func regenerate(v):
 	self.mesh = generateTriangleMesh()
-	
+	var point_cloud = []
+	#if self.mesh != null:
+		#for p in self.mesh.create_trimesh_shape().get_faces():
+		#	point_cloud.append(Vector2(p.x, p.y))
+		#%MeshCollider.set_polygon(PackedVector2Array(point_cloud))
+	if self.mesh != null:
+		var body = self.get_parent()
+		if self.owner_id != null:
+			body.shape_owner_clear_shapes(self.owner_id)
+		else:
+			self.owner_id = body.create_shape_owner(body)
+		
+		var points = self.mesh.surface_get_arrays(self.mesh.ARRAY_VERTEX)[0]
+		var i = 0
+		while i < (points.size() / 3):
+			#var line1 = SegmentShape2D.new()
+			#var line2 = SegmentShape2D.new()
+			#var line3 = SegmentShape2D.new()
+			#line1.a = points[3*i]
+			#line1.b = points[(3*i)+1]
+			#line2.a = points[3*i]
+			#line2.b = points[(3*i)+2]
+			#line3.a = points[(3*i)+1]
+			#line3.b = points[(3*i)+2]
+			
+			#body.shape_owner_add_shape(self.owner_id, line1)
+			#body.shape_owner_add_shape(self.owner_id, line2)
+			#body.shape_owner_add_shape(self.owner_id, line3)
+			var s = ConvexPolygonShape2D.new()
+			s.set_point_cloud(PackedVector2Array(Array([points[3*i], points[(3*i)+1], points[(3*i)+2]])))
+			body.shape_owner_add_shape(self.owner_id, s)
+			i += 1
+
+		print(body.get_shape_owners())
+		print(body.shape_owner_get_shape_count(self.owner_id))
+
 func set_grid():
 	var root_node = get_tree().get_root()
 	var root_grid_size = root_node.get("grid_size")

@@ -18,10 +18,12 @@ func _process(delta):
 
 
 func regenerateSet(val):
-	self.get_child(1).regenerate(true)
+	%MeshInstance.regenerate(true)
 
 
 
 func _on_points_regenerate():
-	self.get_child(1).regenerate(true)
+	%MeshInstance.regenerate(true)
+
+
 

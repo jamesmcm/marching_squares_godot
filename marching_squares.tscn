@@ -1,8 +1,9 @@
-[gd_scene load_steps=5 format=3 uid="uid://2nn3p7a5xko5"]
+[gd_scene load_steps=6 format=3 uid="uid://2nn3p7a5xko5"]
 
 [ext_resource type="Script" path="res://MeshGrid.gd" id="1_dm1b3"]
 [ext_resource type="Script" path="res://game.gd" id="1_l7nue"]
 [ext_resource type="Script" path="res://Points.gd" id="3_kufn3"]
+[ext_resource type="Script" path="res://MeshBody.gd" id="4_ikp5r"]
 [ext_resource type="PackedScene" uid="uid://draeg4g6ient6" path="res://clickable_point.tscn" id="4_yxp7l"]
 
 [node name="Parent" type="Node2D"]
@@ -16,8 +17,14 @@ script = ExtResource("3_kufn3")
 
 [node name="ClickablePoint" parent="Points" instance=ExtResource("4_yxp7l")]
 
-[node name="MeshInstance" type="MeshInstance2D" parent="."]
+[node name="MeshBody" type="StaticBody2D" parent="."]
+input_pickable = true
+script = ExtResource("4_ikp5r")
+
+[node name="MeshInstance" type="MeshInstance2D" parent="MeshBody"]
 unique_name_in_owner = true
 script = ExtResource("1_dm1b3")
 
 [connection signal="regenerate" from="Points" to="." method="_on_points_regenerate"]
+[connection signal="mouse_entered" from="MeshBody" to="MeshBody" method="_on_mouse_entered"]
+[connection signal="mouse_exited" from="MeshBody" to="MeshBody" method="_on_mouse_exited"]
