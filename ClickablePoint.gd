@@ -1,6 +1,6 @@
 extends Area2D
 
-@export_range(4,20) var circle_size = 5
+@export_range(2,20) var circle_size = 2
 @export var colour = Color.BLACK
 signal circle_added(index)
 signal circle_removed(index)
@@ -24,19 +24,29 @@ func init(index: int, parent_node: Node2D):
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
 	pass
+	
+func enable_point():
+	if self.enabled:
+		return
+	self.enabled = true
+	self.get_child(0).reset_colour(Color.GREEN)
+	circle_added.emit(self.index)
+	# print("Circle " + str(self.index) + " enabled")
+
+func disable_point():
+	if not self.enabled:
+		return
+	self.enabled = false
+	self.get_child(0).reset_colour(Color.BLACK)
+
+	circle_removed.emit(self.index)
+	# print("Circle " + str(self.index) + " disabled")
 
 func _on_mouse_entered():
 	if Input.is_action_pressed("draw_action"):
-		self.enabled = true
-		self.get_child(0).reset_colour(Color.GREEN)
-		circle_added.emit(self.index)
-		print("Circle " + str(self.index) + " enabled")
+		self.enable_point()
 	elif Input.is_action_pressed("delete_action"):
-		self.enabled = false
-		self.get_child(0).reset_colour(Color.BLACK)
-
-		circle_removed.emit(self.index)
-		print("Circle " + str(self.index) + " disabled")
+		self.disable_point()
 
 func _input_event(viewport, event, shape_idx):
 	if event is InputEventMouseButton \
@@ -50,10 +60,10 @@ func on_click():
 		self.get_child(0).reset_colour(Color.BLACK)
 
 		circle_removed.emit(self.index)
-		print("Circle " + str(self.index) + " disabled")
+		# print("Circle " + str(self.index) + " disabled")
 	else:
 		self.enabled = true
 		self.get_child(0).reset_colour(Color.GREEN)
 		circle_added.emit(self.index)
-		print("Circle " + str(self.index) + " enabled")
+		# print("Circle " + str(self.index) + " enabled")
 

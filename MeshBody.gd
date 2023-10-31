@@ -10,9 +10,3 @@ func _ready():
 func _process(delta):
 	pass
 
-
-func _on_mouse_entered():
-	print("Mouse entered Mesh")
-
-func _on_mouse_exited():
-	print("Mouse exited Mesh")

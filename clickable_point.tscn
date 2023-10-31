@@ -7,10 +7,11 @@
 radius = 5.0
 
 [node name="ClickablePoint" type="Area2D"]
+collision_layer = 8
+collision_mask = 8
 script = ExtResource("1_alcep")
-circle_size = 10
 
-[node name="CirclePrefab" type="Sprite2D" parent="."]
+[node name="CircleSprite" type="Sprite2D" parent="."]
 script = ExtResource("2_akhx2")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
