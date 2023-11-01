@@ -46,5 +46,5 @@ unique_name_in_owner = true
 anchor_mode = 0
 script = ExtResource("8_uosem")
 
-[connection signal="regenerate" from="Points" to="." method="_on_points_regenerate"]
+[connection signal="regenerate" from="MouseCollider" to="." method="_on_points_regenerate"]
 [connection signal="camera_update" from="Camera" to="MouseCollider" method="_on_camera_update"]

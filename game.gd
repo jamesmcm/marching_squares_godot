@@ -10,20 +10,11 @@ var pending_regenerate = false
 
 var ball_scene = preload("res://falling_ball.tscn")
 
-# Called when the node enters the scene tree for the first time.
-func _ready():
-	print("test")
-	print(self.grid_size)
-	# self.get_child(1).regenerate(true)
-	pass # Replace with function body.
-
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
 	if self.pending_regenerate:
 		%MeshInstance.regenerate(true)
 		self.pending_regenerate = false
-	pass
-
 
 func _input(event):
 	if event.is_action_released("create_ball"):
@@ -35,9 +26,5 @@ func _input(event):
 func regenerateSet(val):
 	self.pending_regenerate = true
 
-
 func _on_points_regenerate():
 	self.pending_regenerate = true
-
-
-
