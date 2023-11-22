@@ -14,6 +14,7 @@ func _on_camera_update(pos):
 	self.handle_motion()
 
 func set_points(enable: bool, smooth: bool):
+	# TODO: Parallelise this?
 	for i in range(0, %Points.points_pos.size()):
 		var v = %Points.points_pos[i] - self.position
 		if v.length() <= self.radius:

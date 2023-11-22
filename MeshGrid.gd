@@ -8,7 +8,7 @@ var current_collider_shapes_points = {}
 var shape_add_count = 0
 var threshold = null
 
-# TODO: Add version with linear interpolation
+
 func build_triangulation_dict(): 
 	# TODO: Convert this to standard 0-15 lookup
 	var triangulation_dict = {
@@ -52,10 +52,8 @@ func build_triangulation_dict():
 # Given modified points and existing mesh, delete and regenerate only affected points
 func interpolate(a, b):
 	if a > b:
-		print((a + b) / 2.0)
 		return (a + b) / 2.0
 	else:
-		print(1 - ((a + b) / 2.0))
 		return 1 - ((a + b) / 2.0)
 
 
@@ -72,10 +70,8 @@ func midpoint_tri_to_interpolation(p, points_weights):
 			return Vector2(1, interpolate(points_weights[1], points_weights[3]))
 	else:
 		return p
+
 func generateTriangleMesh() -> ArrayMesh:
-	set_grid()
-	build_triangulation_dict()
-	var body = self.get_parent()
 	var index_count = 0
 	var indices = PackedInt32Array()
 	var all_triangles = []
@@ -114,7 +110,8 @@ func create_collider_shape(points):
 	return s
 # Called when the node enters the scene tree for the first time.
 func _ready():
-	set_grid()	
+	self.set_grid()
+	self.build_triangulation_dict()
 	self.mesh = generateTriangleMesh()
 
 func clear_shapes(b, owner):
