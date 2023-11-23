@@ -2,11 +2,6 @@
 #version 450
 
 
-struct Triangle {
-    vec2[3] vertices
-}
-
-
 // Flat buffer of triangle vertex triplets
 layout(set = 0, binding = 0, std430) restrict writeonly buffer TrianglesBuffer {
     vec2 data[];
@@ -15,7 +10,7 @@ triangle_buffer;
 
 // Triangulation array of arrays in order of configuration number
 layout(set = 0, binding = 1, std430) restrict readonly buffer TriangulationBuffer {
-    Triangle data[16][3];
+    vec2 data[16][9]; // TODO: How to ensure always 9 - deal with nulls?
 }
 triangulation_buffer;
 
