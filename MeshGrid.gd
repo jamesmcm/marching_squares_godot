@@ -3,6 +3,7 @@ extends MeshInstance2D
 var grid_size = null
 var grid_step = null
 var triangulation_dict = null
+var triangulation_array = []
 var owner_id = null
 var current_collider_shapes_points = {}
 var shape_add_count = 0
@@ -46,6 +47,9 @@ func build_triangulation_dict():
 	triangulation_dict[Vector4(false, true, false, true)] = triangulation_dict[Vector4(true, false, true, false)].map(func(pos): return pos + Vector2(0.5,0))
 	triangulation_dict[Vector4(false, false, true, true)] = triangulation_dict[Vector4(true, true, false, false)].map(func(pos): return pos + Vector2(0,0.5))
 	self.triangulation_dict = triangulation_dict
+	self.triangulation_array.resize(16)
+	for i in range(16):
+		self.triangulation_array[i] = triangulation_dict[Vector4(bool((i&8)>>3), bool((i&4)>>2), bool((i&2)>>1), bool(i&1))]
 
 
 # TODO: Iterative generate mesh
@@ -82,9 +86,10 @@ func generateTriangleMesh() -> ArrayMesh:
 			%Points.points_weights[((y+1)*self.grid_size) + x],
 			%Points.points_weights[((y+1)*self.grid_size) + x + 1]]
 			var points_bools = points_weights.map(func(k): return k >= self.threshold)
-			var square = Vector4(points_bools[0], points_bools[1], points_bools[2], points_bools[3])
+			# var square = Vector4(points_bools[0], points_bools[1], points_bools[2], points_bools[3])
+			var square_index = (int(points_bools[0])<<3)+(int(points_bools[1])<<2)+(int(points_bools[2])<<1)+int(points_bools[3])
 			var triangle_list = PackedVector2Array()
-			for tri in triangulation_dict[square]:
+			for tri in self.triangulation_array[square_index]: # triangulation_dict[square]:
 				var interpolated_tri = midpoint_tri_to_interpolation(tri, points_weights)
 				indices.append(index_count)
 				index_count += 1
