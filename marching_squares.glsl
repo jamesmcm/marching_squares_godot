@@ -55,7 +55,7 @@ float interpolate(float a, float b){
         return (a + b) / 2.0;
     }
     else {
-        return 1 - ((a + b) / 2.0);
+        return 1.0 - ((a + b) / 2.0);
     }
 }
 
@@ -64,7 +64,7 @@ vec2 midpoint_tri_to_interpolation(vec2 p, float[4] weights){
         if (p.y == 0){
             return vec2(interpolate(weights[0], weights[1]), 0.0);
         } else {
-            return vec2(interpolate(weights[0], weights[1]), 0.0);
+            return vec2(interpolate(weights[2], weights[3]), 1.0);
         }
     } else if (p.y == 0.5){
         if (p.x ==0){
@@ -87,7 +87,7 @@ void main() {
 
     bool neighbour_bools[4];
        for(uint j=0;j<4;j++){
-        neighbour_bools[j] = neighbour_weights[j] > threshold.data;
+        neighbour_bools[j] = neighbour_weights[j] >= threshold.data;
        }
     uint square_index = (int(neighbour_bools[0])<<3)+(int(neighbour_bools[1])<<2)+(int(neighbour_bools[2])<<1)+int(neighbour_bools[3]);
 

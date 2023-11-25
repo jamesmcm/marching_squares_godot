@@ -147,6 +147,7 @@ func generateTriangleMeshGpu() -> ArrayMesh:
 	
 	var points_weights_bytes := PackedFloat32Array(%Points.points_weights).to_byte_array()
 	var points_weights_buffer := rd.storage_buffer_create(points_weights_bytes.size(), points_weights_bytes)
+	# print(%Points.points_weights.slice(0,10))
 	var points_weights := RDUniform.new()
 	points_weights.uniform_type = RenderingDevice.UNIFORM_TYPE_STORAGE_BUFFER
 	points_weights.binding = 2 # this needs to match the "binding" in our shader file
@@ -194,11 +195,11 @@ func generateTriangleMeshGpu() -> ArrayMesh:
 	rd.compute_list_end()
 	rd.submit()
 	rd.sync()
-	
 	# TODO: Can we get Vector2 array directly ?
 	# TODO: Precision issues ? 
 	var arr =  rd.buffer_get_data(buffer).to_float32_array()
 	# print(arr)
+	print(arr.slice(0,10))
 	var i = 0
 	var all_triangles = []
 	var indices = []
@@ -209,13 +210,11 @@ func generateTriangleMeshGpu() -> ArrayMesh:
 		all_triangles.append(Vector2(arr[2*i], arr[(2*i)+1]))
 		indices.append(i)
 		i += 1
-		
 	var out_arr = []
 	out_arr.resize(Mesh.ARRAY_MAX)
 	var verts = PackedVector2Array()
 	if all_triangles.size() == 0:
 		return null
-	
 	verts.append_array(all_triangles)
 	out_arr[Mesh.ARRAY_VERTEX] = verts
 	out_arr[Mesh.ARRAY_INDEX] = indices
