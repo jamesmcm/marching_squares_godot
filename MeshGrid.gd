@@ -4,6 +4,10 @@ var grid_size = null
 var grid_step = null
 var triangulation_dict = null
 var triangulation_array = []
+var triangulation_sizes = []
+var triangulation_starts = []
+var rd: RenderingDevice
+var shader: RID
 var owner_id = null
 var current_collider_shapes_points = {}
 var shape_add_count = 0
@@ -48,8 +52,17 @@ func build_triangulation_dict():
 	triangulation_dict[Vector4(false, false, true, true)] = triangulation_dict[Vector4(true, true, false, false)].map(func(pos): return pos + Vector2(0,0.5))
 	self.triangulation_dict = triangulation_dict
 	self.triangulation_array.resize(16)
+	self.triangulation_sizes.resize(16)
+	self.triangulation_starts.resize(16)
+	var start_index = 0
 	for i in range(16):
-		self.triangulation_array[i] = triangulation_dict[Vector4(bool((i&8)>>3), bool((i&4)>>2), bool((i&2)>>1), bool(i&1))]
+		var tri = triangulation_dict[Vector4(bool((i&8)>>3), bool((i&4)>>2), bool((i&2)>>1), bool(i&1))]
+		var size = tri.size()
+		self.triangulation_sizes[i] = size
+		self.triangulation_starts[i] = start_index
+		self.triangulation_array[i] = tri
+		start_index += size
+		# self.triangulation_array[i].resize(9)
 
 
 # TODO: Iterative generate mesh
@@ -108,6 +121,109 @@ func generateTriangleMesh() -> ArrayMesh:
 	var mesh = ArrayMesh.new()
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arr)
 	return mesh
+	
+func generateTriangleMeshGpu() -> ArrayMesh:
+	var triangles_sized = []
+	triangles_sized.resize(self.grid_size * self.grid_size * 9)
+	var input_bytes := PackedVector2Array(triangles_sized).to_byte_array()
+	var buffer := rd.storage_buffer_create(input_bytes.size(), input_bytes)
+	var triangles := RDUniform.new()
+	triangles.uniform_type = RenderingDevice.UNIFORM_TYPE_STORAGE_BUFFER
+	triangles.binding = 0 # this needs to match the "binding" in our shader file
+	triangles.add_id(buffer)
+	
+	# print(triangulation_array)
+	var flat_triangulation_array = []
+	for i in range(16):
+		flat_triangulation_array.append_array(triangulation_array[i])
+	# print(flat_triangulation_array)
+	var triangulation_bytes := PackedVector2Array(flat_triangulation_array).to_byte_array()
+	# print(triangulation_bytes)
+	var triangulation_buffer := rd.storage_buffer_create(triangulation_bytes.size(), triangulation_bytes)
+	var triangulation := RDUniform.new()
+	triangulation.uniform_type = RenderingDevice.UNIFORM_TYPE_STORAGE_BUFFER
+	triangulation.binding = 1 # this needs to match the "binding" in our shader file
+	triangulation.add_id(triangulation_buffer)
+	
+	var points_weights_bytes := PackedFloat32Array(%Points.points_weights).to_byte_array()
+	var points_weights_buffer := rd.storage_buffer_create(points_weights_bytes.size(), points_weights_bytes)
+	var points_weights := RDUniform.new()
+	points_weights.uniform_type = RenderingDevice.UNIFORM_TYPE_STORAGE_BUFFER
+	points_weights.binding = 2 # this needs to match the "binding" in our shader file
+	points_weights.add_id(points_weights_buffer)
+	
+	var step_size_uniform := RDUniform.new()
+	var step_size_bytes = PackedInt32Array([self.grid_step]).to_byte_array()
+	step_size_uniform.uniform_type = RenderingDevice.UNIFORM_TYPE_STORAGE_BUFFER
+	step_size_uniform.binding = 3
+	step_size_uniform.add_id(rd.storage_buffer_create(step_size_bytes.size(), step_size_bytes ))
+	
+	var grid_size_uniform := RDUniform.new()
+	var grid_size_bytes = PackedInt32Array([self.grid_size]).to_byte_array()
+	grid_size_uniform.uniform_type = RenderingDevice.UNIFORM_TYPE_STORAGE_BUFFER
+	grid_size_uniform.binding = 4
+	grid_size_uniform.add_id(rd.storage_buffer_create(grid_size_bytes.size(), grid_size_bytes ))
+	
+	var threshold_uniform := RDUniform.new()
+	var threshold_bytes = PackedFloat32Array([self.threshold]).to_byte_array()
+	threshold_uniform.uniform_type = RenderingDevice.UNIFORM_TYPE_STORAGE_BUFFER
+	threshold_uniform.binding = 5
+	threshold_uniform.add_id(rd.storage_buffer_create(threshold_bytes.size(), threshold_bytes ))
+	
+	var triangulation_sizes_bytes := PackedInt32Array(triangulation_sizes).to_byte_array()
+	var triangulation_sizes_buffer := rd.storage_buffer_create(triangulation_sizes_bytes.size(), triangulation_sizes_bytes)
+	var triangulation_sizes_rd := RDUniform.new()
+	triangulation_sizes_rd.uniform_type = RenderingDevice.UNIFORM_TYPE_STORAGE_BUFFER
+	triangulation_sizes_rd.binding = 6 # this needs to match the "binding" in our shader file
+	triangulation_sizes_rd.add_id(triangulation_sizes_buffer)
+	
+	var triangulation_starts_bytes := PackedInt32Array(triangulation_starts).to_byte_array()
+	var triangulation_starts_buffer := rd.storage_buffer_create(triangulation_starts_bytes.size(), triangulation_starts_bytes)
+	var triangulation_starts_rd := RDUniform.new()
+	triangulation_starts_rd.uniform_type = RenderingDevice.UNIFORM_TYPE_STORAGE_BUFFER
+	triangulation_starts_rd.binding = 7 # this needs to match the "binding" in our shader file
+	triangulation_starts_rd.add_id(triangulation_starts_buffer)
+	
+	var uniform_set := rd.uniform_set_create([triangles, triangulation, points_weights, step_size_uniform, grid_size_uniform, threshold_uniform, triangulation_sizes_rd, triangulation_starts_rd], shader, 0) # the last parameter (the 0) needs to match the "set" in our shader file
+	# print(rd.uniform_set_is_valid(uniform_set))
+	var pipeline := rd.compute_pipeline_create(shader)
+	var compute_list := rd.compute_list_begin()
+	rd.compute_list_bind_compute_pipeline(compute_list, pipeline)
+	rd.compute_list_bind_uniform_set(compute_list, uniform_set, 0)
+	rd.compute_list_dispatch(compute_list, 1, 1, 1)
+	rd.compute_list_end()
+	rd.submit()
+	rd.sync()
+	
+	# TODO: Can we get Vector2 array directly ?
+	# TODO: Precision issues ? 
+	var arr =  rd.buffer_get_data(buffer).to_float32_array()
+	# print(arr)
+	var i = 0
+	var all_triangles = []
+	var indices = []
+	while true:
+		# print(arr[i])
+		if arr[2*i] == 0:
+			break
+		all_triangles.append(Vector2(arr[2*i], arr[(2*i)+1]))
+		indices.append(i)
+		i += 1
+		
+	var out_arr = []
+	out_arr.resize(Mesh.ARRAY_MAX)
+	var verts = PackedVector2Array()
+	if all_triangles.size() == 0:
+		return null
+	
+	verts.append_array(all_triangles)
+	out_arr[Mesh.ARRAY_VERTEX] = verts
+	out_arr[Mesh.ARRAY_INDEX] = indices
+	var mesh = ArrayMesh.new()
+	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arr)
+	return mesh
+
+
 
 func create_collider_shape(points):
 	var s = ConvexPolygonShape2D.new()
@@ -115,9 +231,13 @@ func create_collider_shape(points):
 	return s
 # Called when the node enters the scene tree for the first time.
 func _ready():
+	rd = RenderingServer.create_local_rendering_device()
+	var shader_file := load("res://marching_squares.glsl")
+	var shader_spirv: RDShaderSPIRV = shader_file.get_spirv()
+	shader = rd.shader_create_from_spirv(shader_spirv)
 	self.set_grid()
 	self.build_triangulation_dict()
-	self.mesh = generateTriangleMesh()
+	# self.mesh = generateTriangleMeshGpu()
 
 func clear_shapes(b, owner):
 	# b.shape_owner_clear_shapes(owner)
@@ -146,7 +266,7 @@ func regenerate(v):
 	#	self.clear_shapes(body, self.owner_id)
 	if self.owner_id == null:
 		self.owner_id = body.create_shape_owner(body)
-	self.mesh = generateTriangleMesh()
+	self.mesh = generateTriangleMeshGpu()
 	
 	var new_set = get_new_collider_shapes_set()
 	var new_tris = set_difference(new_set, self.current_collider_shapes_points)

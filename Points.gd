@@ -23,5 +23,5 @@ func _ready():
 	for j in range(0, self.grid_size):
 		for i in range(0, self.grid_size):
 			var p = point_scene.instantiate()
-			points_weights.append(0)
+			points_weights.append(0.0)
 			points_pos.append(Vector2(self.position.x + (i*self.grid_step), self.position.y + (j*self.grid_step)))
