@@ -3,8 +3,8 @@
 Implementation of the [Marching Squares algorithm](https://en.wikipedia.org/wiki/Marching_squares)
 in Godot 4
 
+![Example painting](./screenshots/example.gif)
+
 ![Grid example](./screenshots/example_grid.png)
 
-Note it currently works with binary points and so does not use
-interpolation, but only mid-points.
-
+Works with compute shader and linear interpolation.

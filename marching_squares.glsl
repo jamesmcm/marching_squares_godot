@@ -48,7 +48,7 @@ layout(set = 0, binding = 7, std430) restrict buffer TriangulationStartsBuffer {
 triangulation_starts_buffer;
 
 // TODO: How can we pass grid_size here when Godot compiles?
-layout(local_size_x = 99, local_size_y = 99, local_size_z = 1) in;
+layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
 
 float interpolate(float a, float b){
     if (a > b){
@@ -77,7 +77,10 @@ vec2 midpoint_tri_to_interpolation(vec2 p, float[4] weights){
     }
 
 }
+
 void main() {
+
+    // triangle_buffer.data[0] = vec2(6.6, 3.3);
     uint index = (gl_GlobalInvocationID.y * grid_size.data) + gl_GlobalInvocationID.x;
     float neighbour_weights[4];
     neighbour_weights[0] = points_weights.data[index];
@@ -97,9 +100,9 @@ void main() {
     vec2 p = triangulation_buffer.data[ix + i];
     
     vec2 p2 = midpoint_tri_to_interpolation(p, neighbour_weights);
-    vec2 pfinal = (p2 * float(grid_size.data)) + vec2(float(gl_GlobalInvocationID.x * step_size.data), float(gl_GlobalInvocationID.y * step_size.data));
+    vec2 pfinal = (p2 * float(step_size.data)) + vec2(float(gl_GlobalInvocationID.x * step_size.data), float(gl_GlobalInvocationID.y * step_size.data));
 
-    triangle_buffer.data[index + ix] = pfinal;
+    triangle_buffer.data[(9*index) + i] = pfinal;
     // // triangle_buffer.data[triangle_buffer.data.length() -1 ] = pfinal; //TODO: Ensure sets of 3 points inserted together
     }
 

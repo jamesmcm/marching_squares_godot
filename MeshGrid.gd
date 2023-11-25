@@ -115,6 +115,7 @@ func generateTriangleMesh() -> ArrayMesh:
 	if all_triangles.size() == 0:
 		return null
 	
+	# print(all_triangles)
 	verts.append_array(all_triangles)
 	arr[Mesh.ARRAY_VERTEX] = verts
 	arr[Mesh.ARRAY_INDEX] = indices
@@ -125,6 +126,7 @@ func generateTriangleMesh() -> ArrayMesh:
 func generateTriangleMeshGpu() -> ArrayMesh:
 	var triangles_sized = []
 	triangles_sized.resize(self.grid_size * self.grid_size * 9)
+	triangles_sized.fill(Vector2(-999.0, -999.0))
 	var input_bytes := PackedVector2Array(triangles_sized).to_byte_array()
 	var buffer := rd.storage_buffer_create(input_bytes.size(), input_bytes)
 	var triangles := RDUniform.new()
@@ -191,36 +193,38 @@ func generateTriangleMeshGpu() -> ArrayMesh:
 	var compute_list := rd.compute_list_begin()
 	rd.compute_list_bind_compute_pipeline(compute_list, pipeline)
 	rd.compute_list_bind_uniform_set(compute_list, uniform_set, 0)
-	rd.compute_list_dispatch(compute_list, 1, 1, 1)
+	rd.compute_list_dispatch(compute_list, self.grid_size-1, self.grid_size-1, 1)
 	rd.compute_list_end()
 	rd.submit()
 	rd.sync()
 	# TODO: Can we get Vector2 array directly ?
 	# TODO: Precision issues ? 
 	var arr =  rd.buffer_get_data(buffer).to_float32_array()
-	# print(arr)
-	print(arr.slice(0,10))
-	var i = 0
+	# print(arr)a
+
+
 	var all_triangles = []
 	var indices = []
-	while true:
+	var ix = 0
+	for i in range(arr.size() / 2):
 		# print(arr[i])
-		if arr[2*i] == 0:
-			break
-		all_triangles.append(Vector2(arr[2*i], arr[(2*i)+1]))
-		indices.append(i)
-		i += 1
+		if arr[2*i] >= 0 or arr[(2*i)+1] >= 0:
+			all_triangles.append(Vector2(float(arr[2*i]), float(arr[(2*i)+1])))
+			indices.append(ix)
+			ix += 1
 	var out_arr = []
 	out_arr.resize(Mesh.ARRAY_MAX)
 	var verts = PackedVector2Array()
 	if all_triangles.size() == 0:
 		return null
+
 	verts.append_array(all_triangles)
+
 	out_arr[Mesh.ARRAY_VERTEX] = verts
-	out_arr[Mesh.ARRAY_INDEX] = indices
-	var mesh = ArrayMesh.new()
-	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arr)
-	return mesh
+	# out_arr[Mesh.ARRAY_INDEX] = indices
+	var mymesh = ArrayMesh.new()
+	mymesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, out_arr)
+	return mymesh
 
 
 
@@ -246,6 +250,7 @@ func clear_shapes(b, owner):
 func get_new_collider_shapes_set():
 	if self.mesh == null:
 		return {}
+
 	var points = self.mesh.surface_get_arrays(self.mesh.ARRAY_VERTEX)[0]
 	if points.size() == 0:
 		return {}
