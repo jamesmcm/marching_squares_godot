@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3 uid="uid://2nn3p7a5xko5"]
+[gd_scene load_steps=14 format=3 uid="uid://2nn3p7a5xko5"]
 
 [ext_resource type="Script" path="res://MeshGrid.gd" id="1_dm1b3"]
 [ext_resource type="Script" path="res://game.gd" id="1_l7nue"]
@@ -6,9 +6,33 @@
 [ext_resource type="Script" path="res://MeshBody.gd" id="4_ikp5r"]
 [ext_resource type="Script" path="res://MouseCollider.gd" id="5_oc32h"]
 [ext_resource type="Script" path="res://Circle.gd" id="6_m82l2"]
+[ext_resource type="Script" path="res://Player.gd" id="8_2nbqq"]
 [ext_resource type="Script" path="res://Camera.gd" id="8_uosem"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_w7gar"]
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_b7r4o"]
+noise_type = 2
+seed = 14
+frequency = 0.003
+cellular_jitter = 0.7
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_3jbuj"]
+width = 2000
+height = 2000
+invert = true
+noise = SubResource("FastNoiseLite_b7r4o")
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_wqrdq"]
+noise_type = 3
+seed = 7
+frequency = 0.006
+cellular_jitter = 0.7
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_imbci"]
+width = 2000
+height = 2000
+noise = SubResource("FastNoiseLite_wqrdq")
 
 [node name="Game" type="Node2D"]
 script = ExtResource("1_l7nue")
@@ -45,6 +69,24 @@ script = ExtResource("6_m82l2")
 unique_name_in_owner = true
 anchor_mode = 0
 script = ExtResource("8_uosem")
+
+[node name="Player" type="CharacterBody2D" parent="."]
+position = Vector2(400, 100)
+script = ExtResource("8_2nbqq")
+
+[node name="Collider" type="CollisionShape2D" parent="Player"]
+
+[node name="Noises" type="Node2D" parent="."]
+
+[node name="NoiseCoarse" type="Sprite2D" parent="Noises"]
+unique_name_in_owner = true
+visible = false
+texture = SubResource("NoiseTexture2D_3jbuj")
+
+[node name="NoiseFine" type="Sprite2D" parent="Noises"]
+unique_name_in_owner = true
+visible = false
+texture = SubResource("NoiseTexture2D_imbci")
 
 [connection signal="regenerate" from="MouseCollider" to="." method="_on_points_regenerate"]
 [connection signal="camera_update" from="Camera" to="MouseCollider" method="_on_camera_update"]

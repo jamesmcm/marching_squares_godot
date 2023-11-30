@@ -19,9 +19,19 @@ func set_grid():
 		self.grid_step = root_grid_step
 
 func _ready():
+	await %NoiseCoarse.texture.changed
+	await %NoiseFine.texture.changed
+	var noise_image_coarse = %NoiseCoarse.texture.get_image()
+	var noise_image_fine = %NoiseFine.texture.get_image()
+	# print(noise_image)
 	self.set_grid()
 	for j in range(0, self.grid_size):
 		for i in range(0, self.grid_size):
 			var p = point_scene.instantiate()
-			points_weights.append(0.0)
+			# points_weights.append(0.0)
+			var pixel_coarse = noise_image_coarse.get_pixel(i*grid_step, j*grid_step)
+			var pixel_fine = noise_image_fine.get_pixel(i*grid_step, j*grid_step)
+			points_weights.append(0.9*pixel_coarse.r + (0.1*pixel_fine.r))
+
 			points_pos.append(Vector2(self.position.x + (i*self.grid_step), self.position.y + (j*self.grid_step)))
+	self.get_parent().regenerateSet(true)
